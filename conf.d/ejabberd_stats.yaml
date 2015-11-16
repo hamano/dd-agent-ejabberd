@@ -1,0 +1,8 @@
+init_config:
+  verbose: False
+
+instances:
+  - url: 'http://HOST:PORT'
+    user: 'admin'
+    server: 'localhost'
+    password: 'secret'
