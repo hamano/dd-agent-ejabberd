@@ -1,7 +1,11 @@
+# Datadog Agent for Ejabberd
+# debug for:
+# sudo -u dd-agent dd-agent check ejabberd
+
 from checks import AgentCheck
 import xmlrpclib
 
-class EjabberdStats(AgentCheck):
+class EjabberdCheck(AgentCheck):
     def check(self, instance):
         verbose = self.init_config.get('verbose', False)
         server = xmlrpclib.ServerProxy(instance['url'], verbose=verbose);
