@@ -1,4 +1,4 @@
-# Datadog Agent for Ejabberd
+# Datadog Agent Check Plugin for Ejabberd
 # debug for:
 # sudo -u dd-agent dd-agent check ejabberd
 
