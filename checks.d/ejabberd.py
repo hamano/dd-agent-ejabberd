@@ -16,4 +16,9 @@ class EjabberdCheck(AgentCheck):
         self.gauge('ejabberd.onlineusersnode', res['stat'])
         res = server.stats(auth, {'name': 'registeredusers'})
         self.gauge('ejabberd.registeredusers', res['stat'])
+        try:
+            res = server.stats(auth, {'name': 'processes'})
+            self.gauge('ejabberd.processes', res['stat'])
+        except:
+            pass
 
