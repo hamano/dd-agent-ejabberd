@@ -6,6 +6,11 @@ from checks import AgentCheck
 import xmlrpclib
 
 class EjabberdCheck(AgentCheck):
+    SERVICE_CHECK_NAME = 'ejabberd.is_ok'
+
+    def __init__(self, name, init_config, agentConfig, instances=None):
+        AgentCheck.__init__(self, name, init_config, agentConfig, instances)
+
     def check(self, instance):
         verbose = self.init_config.get('verbose', False)
         server = xmlrpclib.ServerProxy(instance['url'], verbose=verbose);
@@ -21,4 +26,5 @@ class EjabberdCheck(AgentCheck):
             self.gauge('ejabberd.processes', res['stat'])
         except:
             pass
+        self.service_check(self.SERVICE_CHECK_NAME, AgentCheck.OK)
 
