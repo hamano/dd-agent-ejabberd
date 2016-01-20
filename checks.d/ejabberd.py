@@ -26,5 +26,9 @@ class EjabberdCheck(AgentCheck):
             self.gauge('ejabberd.processes', res['stat'])
         except:
             pass
+        res = server.incoming_s2s_number(auth)
+        self.gauge('ejabberd.s2s_incoming', res['s2s_incoming'])
+        res = server.outgoing_s2s_number(auth)
+        self.gauge('ejabberd.s2s_outgoing', res['s2s_outgoing'])
         self.service_check(self.SERVICE_CHECK_NAME, AgentCheck.OK)
 
