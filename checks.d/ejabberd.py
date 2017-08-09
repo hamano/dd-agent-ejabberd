@@ -1,9 +1,28 @@
 # Datadog Agent Check Plugin for Ejabberd
 # debug for:
 # sudo -u dd-agent dd-agent check ejabberd
+# In docker:
+# /opt/datadog-agent/agent/agent.py check ejabberd
 
 from checks import AgentCheck
-import xmlrpclib
+from requests import post
+from requests.auth import HTTPBasicAuth
+
+def get_stats(url, name, auth):
+    data = '{"name":"%s"}' % (name)
+    res = post(url + '/stats', data, auth=auth)
+    obj = res.json()
+    return obj['stat']
+
+def get_incoming_s2s_number(url, auth):
+    res = post(url + '/incoming_s2s_number', '{}', auth=auth)
+    obj = res.json()
+    return obj['s2s_incoming']
+
+def get_outgoing_s2s_number(url, auth):
+    res = post(url + '/outgoing_s2s_number', '{}', auth=auth)
+    obj = res.json()
+    return obj['s2s_outgoing']
 
 class EjabberdCheck(AgentCheck):
     SERVICE_CHECK_NAME = 'ejabberd.is_ok'
@@ -13,25 +32,26 @@ class EjabberdCheck(AgentCheck):
 
     def check(self, instance):
         verbose = self.init_config.get('verbose', False)
-        server = xmlrpclib.ServerProxy(instance['url'], verbose=verbose);
-        auth = {'user': instance['user'], 'server': instance['server'], 'password': instance['password']}
+        if 'jid' in instance and 'password' in instance:
+            auth = HTTPBasicAuth(instance['jid'], instance['password'])
+        else:
+            auth = None
         try:
-            res = server.stats(auth, {'name': 'onlineusers'})
-            self.gauge('ejabberd.onlineusers', res['stat'])
-            res = server.stats(auth, {'name': 'onlineusersnode'})
-            self.gauge('ejabberd.onlineusersnode', res['stat'])
-            res = server.stats(auth, {'name': 'registeredusers'})
-            self.gauge('ejabberd.registeredusers', res['stat'])
-            res = server.stats(auth, {'name': 'processes'})
-            self.gauge('ejabberd.processes', res['stat'])
-            res = server.incoming_s2s_number(auth)
-            self.gauge('ejabberd.s2s_incoming', res['s2s_incoming'])
-            res = server.outgoing_s2s_number(auth)
-            self.gauge('ejabberd.s2s_outgoing', res['s2s_outgoing'])
+            res = get_stats(instance['url'], 'registeredusers', auth)
+            self.gauge('ejabberd.registeredusers', res)
+            res = get_stats(instance['url'], 'onlineusers', auth)
+            self.gauge('ejabberd.onlineusers', res)
+            res = get_stats(instance['url'], 'onlineusersnode', auth)
+            self.gauge('ejabberd.onlineusersnode', res)
+            res = get_stats(instance['url'], 'processes', auth)
+            self.gauge('ejabberd.processes', res)
+            res = get_incoming_s2s_number(instance['url'], auth)
+            self.gauge('ejabberd.s2s_incoming', res)
+            res = get_outgoing_s2s_number(instance['url'], auth)
+            self.gauge('ejabberd.s2s_outgoing', res)
             self.service_check(self.SERVICE_CHECK_NAME, AgentCheck.OK)
         except Exception as e:
             self.service_check(self.SERVICE_CHECK_NAME, AgentCheck.CRITICAL,
                                message="Unable to get ejabberd stats: %s"
                                % str(e))
-            pass
 

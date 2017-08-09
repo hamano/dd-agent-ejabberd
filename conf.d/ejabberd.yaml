@@ -2,7 +2,6 @@ init_config:
   verbose: False
 
 instances:
-  - url: 'http://HOST:PORT'
-    user: 'admin'
-    server: 'localhost'
+  - url: 'http://HOST:PORT/api'
+    jid: 'admin@localhost'
     password: 'secret'
