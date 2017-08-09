@@ -6,7 +6,6 @@
 
 from checks import AgentCheck
 from requests import post
-from requests.auth import HTTPBasicAuth
 
 def get_stats(url, name, auth):
     data = '{"name":"%s"}' % (name)
@@ -33,7 +32,7 @@ class EjabberdCheck(AgentCheck):
     def check(self, instance):
         verbose = self.init_config.get('verbose', False)
         if 'jid' in instance and 'password' in instance:
-            auth = HTTPBasicAuth(instance['jid'], instance['password'])
+            auth = (instance['jid'], instance['password'])
         else:
             auth = None
         try:
